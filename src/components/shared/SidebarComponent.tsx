@@ -1,6 +1,8 @@
 import React, {useContext} from "react";
 import {ActiveTab} from "../../utils/global";
 import {UserContext} from "../../context/UserContext";
+import {destroyUserLocally} from "../../services/storage.service";
+import {Role} from "../../dtos/user";
 
 const Sidebar: React.FC<any> = ({ activeTabState }) => {
 
@@ -21,6 +23,7 @@ const Sidebar: React.FC<any> = ({ activeTabState }) => {
             </div>
             <div className="w-full flex flex-col justify-center items-start mb-10 mt-2 grow">
 
+
                 {user === null ?
                     <>
                         <button onClick={() => { changeActiveTab(ActiveTab.Login) }} className={"transition ease-in-out font-gilroy hover:text-black hover:scale-105 " + (activeTabState.activeTab === ActiveTab.Login ? 'text-black scale-105' : 'text-slate-500')}>
@@ -28,7 +31,17 @@ const Sidebar: React.FC<any> = ({ activeTabState }) => {
                         </button>
                     </> :
                     <>
-                        <button onClick={() => {}} className={"transition ease-in-out font-gilroy text-slate-500 hover:text-black hover:scale-105"}>
+                        {user.isSetup &&
+                            <button onClick={() => {changeActiveTab(ActiveTab.SENSORS)}} className={"transition ease-in-out font-gilroy hover:text-black hover:scale-105 " + (activeTabState.activeTab === ActiveTab.SENSORS ? 'text-black scale-105' : 'text-slate-500')}>
+                                <i className="fa-solid fa-gear mr-1"/> Sensors
+                            </button>
+                        }
+
+                        <button onClick={() => {
+                            setUser?.(null);
+                            destroyUserLocally()
+                            changeActiveTab(ActiveTab.Login)
+                        }} className={"transition ease-in-out font-gilroy text-slate-500 hover:text-black hover:scale-105"}>
                             <i className="fa-solid fa-unlock mr-1"/> Logout
                         </button>
                     </>
@@ -41,11 +54,17 @@ const Sidebar: React.FC<any> = ({ activeTabState }) => {
                 <button onClick={() => { changeActiveTab(ActiveTab.TOS) }} className={"transition ease-in-out font-gilroy hover:text-black hover:scale-105 " + (activeTabState.activeTab === ActiveTab.TOS ? 'text-black scale-105' : 'text-slate-500')}>
                     <i className="fa-solid fa-book mr-1"/> ToS
                 </button>
+
+                {user != null && user.role === Role.admin &&
+                    <button onClick={() => { changeActiveTab(ActiveTab.ADMIN) }} className={"transition ease-in-out font-gilroy hover:text-black hover:scale-105 " + (activeTabState.activeTab === ActiveTab.ADMIN ? 'text-black scale-105' : 'text-slate-500')}>
+                        <i className="fa-solid fa-user mr-1"/> Admin Panel
+                    </button>
+                }
             </div>
 
             {user !== null ?
                 <div className="w-full flex flex-col justify-center items-start mb-14">
-                    <h1 className="text-slate-400 text-xs mt-2">Jake El Mir</h1>
+                    <h1 className="text-slate-400 text-xs mt-2">{user.email}</h1>
                 </div>
                 : <></> }
 

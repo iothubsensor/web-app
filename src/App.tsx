@@ -7,13 +7,41 @@ import Login from "./components/screens/Login";
 import {UserContext} from './context/UserContext';
 
 import {Toaster} from "react-hot-toast";
-import {UserDTO} from "./dtos/user";
+import {Role, UserDTO} from "./dtos/user";
 import TOS from "./components/screens/TOS";
+import Sensors from "./components/screens/Sensors";
+import {destroyUserLocally, loadUserLocally} from "./services/storage.service";
+
+import fetchIntercept from 'fetch-intercept';
+import Admin from "./components/screens/Admin";
 
 function App() {
 
-    const [activeTab, setActiveTab] = useState<ActiveTab>(ActiveTab.Login);
-    const [user, setUser] = useState<UserDTO | null>(null);
+    const [activeTab, setActiveTab] = useState<ActiveTab>(ActiveTab.SENSORS);
+    const [user, setUser] = useState<UserDTO | null>(loadUserLocally);
+
+    const unregister = fetchIntercept.register({
+        request: function (url, config) {
+            return [url, config];
+        },
+
+        requestError: function (error) {
+            return Promise.reject(error);
+        },
+
+        response: function (response) {
+            if(!response.ok && (response.status === 401)) {
+                destroyUserLocally()
+                setUser(null)
+            }
+
+            return response;
+        },
+
+        responseError: function (error) {
+            return Promise.reject(error);
+        },
+    });
 
     return (
         <UserContext.Provider value={{user, setUser}}>
@@ -21,8 +49,12 @@ function App() {
                 <SidebarComponent activeTabState={{ activeTab, setActiveTab }} />
 
                 <div className="h-screen w-screen">
-                    <div className="h-screen w-full pl-64 flex flex-col pt-8">
-                        {activeTab === ActiveTab.Login ? <Login/> : <TOS/>}
+                    <div className="h-screen w-full flex flex-col pl-64 pt-8">
+                        {user === null ?
+                            <Login activeTabState={{ activeTab, setActiveTab }} /> :
+                            activeTab === ActiveTab.TOS ?
+                                <TOS/> : activeTab === ActiveTab.SENSORS ? <Sensors/> : <Admin/>
+                        }
                     </div>
                 </div>
 

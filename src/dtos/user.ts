@@ -1,46 +1,51 @@
-export class UserDTO {
-  id: number;
-  email: string;
-  firstName: string;
-  lastName: string;
-  role: Role;
-  phoneNumber?: number;
-  phoneCode?: number;
-  description?: string;
-  address?: string;
+import {SensorDTO} from "./sensor";
+import {ActiveTab} from "../utils/global";
 
-  constructor(
-    id: number,
-    email: string,
-    firstName: string,
-    lastName: string,
-    role: Role
-  ) {
-    this.id = id;
+export class UserDTO {
+  userId: number;
+  email: string;
+  role: Role;
+  phoneExtension: string;
+  phoneNumber: string;
+  address: string;
+  jobDescription: string;
+  isSetup: boolean;
+  token: string | undefined;
+  screen: ActiveTab;
+  sensors?: Array<String>;
+
+  constructor(userId: number, email: string, role: Role, screen: ActiveTab, token: string, phoneExtension: string, phoneNumber: string, address: string, jobDescription: string, isSetup: boolean, sensors: Array<String>) {
+    this.userId = userId;
     this.email = email;
-    this.firstName = firstName;
-    this.lastName = lastName;
     this.role = role;
+    this.phoneExtension = phoneExtension;
+    this.phoneNumber = phoneNumber;
+    this.address = address;
+    this.jobDescription = jobDescription;
+    this.isSetup = isSetup;
+    this.token = token;
+    this.screen = screen;
+    this.sensors = sensors;
   }
+
 }
 
 export enum Role {
-  admin = "admin",
-  customer = "customer"
+  customer = 0,
+  admin = 1
 }
 
 export class UserLoginRequestDto {
   email?: string;
-  activeAccount?: boolean;
-
   password?: string;
+
+  isSetup?: boolean;
 
   firstName?: string;
   lastName?: string;
-  gender?: string;
-  placeOfBirth?: string;
-  nationality?: string;
-  dateOfBirth?: Date;
+
+  address?: string;
+  jobDescription?: string;
 
   phoneExtension?: string;
   phoneNumber?: string;
@@ -52,11 +57,11 @@ export class UserLoginRequestDto {
 
     this.firstName = "";
     this.lastName = "";
-    this.gender = "";
-    this.placeOfBirth = "";
-    this.nationality = "";
 
-    this.phoneExtension = "971";
+    this.address = "";
+    this.jobDescription = "";
+
+    this.phoneExtension = "961";
     this.phoneNumber = "";
   }
 
@@ -65,9 +70,7 @@ export class UserLoginRequestDto {
 export enum LoginState {
   INPUT_EMAIL,
   INPUT_PASSWORD,
-  CREATE_PASSWORD,
-  KYC_DETAILS,
-  ENTER_PHONE
+  SETUP
 }
 
 export class SearchUserRequestDTO {

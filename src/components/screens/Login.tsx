@@ -1,12 +1,20 @@
-import React, {useState} from "react";
+import React, {useContext, useState} from "react";
 import toast from "react-hot-toast";
-import {LoginState, UserLoginRequestDto} from "../../dtos/user";
+import {LoginState, UserDTO, UserLoginRequestDto} from "../../dtos/user";
 import {animated, useSpring} from "react-spring";
+import {UserService} from "../../services/user.service";
+import {useCookies} from "react-cookie";
+import {destroyUserLocally, saveUserLocally} from "../../services/storage.service";
+import {UserContext} from "../../context/UserContext";
+import {ActiveTab} from "../../utils/global";
 
-const Login: React.FC = () => {
+const Login: React.FC<any> = ({ activeTabState }) => {
 
     const [loginUser, setLoginUser] = useState<UserLoginRequestDto>(new UserLoginRequestDto());
     const [currentState, setCurrentState] = useState<LoginState>(LoginState.INPUT_EMAIL);
+    const [isWaiting, setIsWaiting] = useState(false);
+
+    const appUser = useContext(UserContext);
 
     const validateEmail = (email: string) => {
         return String(email)
@@ -22,19 +30,22 @@ const Login: React.FC = () => {
         api({ reset: false });
     };
 
-    const handleStep = (e: any) => {
+    const handleStep = async(e: any) => {
         e.preventDefault();
+        toast.dismiss();
+
+        setIsWaiting(true)
 
         switch(currentState) {
             case LoginState.INPUT_EMAIL:
-
-                toast.dismiss();
 
                 if(loginUser.email == null || loginUser.email === "") {
                     toast.error("An email is required to authenticate.", {
                         duration: 3000,
                         className: 'font-gilroyLight'
                     });
+
+                    setIsWaiting(false)
 
                     return;
                 }
@@ -45,10 +56,10 @@ const Login: React.FC = () => {
                         className: 'font-gilroyLight'
                     });
 
+                    setIsWaiting(false)
+
                     return;
                 }
-
-                //TODO Call backend using axios to determine type of user then go from there.
 
                 switchToState(LoginState.INPUT_PASSWORD)
 
@@ -56,10 +67,95 @@ const Login: React.FC = () => {
             case LoginState.INPUT_PASSWORD:
                 if(loginUser.password == null || loginUser.password === "") {
                     toast.error("A password is required to authenticate.");
+                    setIsWaiting(false)
                     return;
                 }
 
-                //TODO Call backend using axios to authenticate password then go from there.
+                try {
+                    const loginDetails = await UserService.login(loginUser);
+
+                    const userDTO: UserDTO = (loginDetails.data.user) as UserDTO;
+                    userDTO.token = loginDetails.data.token;
+
+                    login(userDTO);
+                    setIsWaiting(false);
+
+                    toast.success("Successfully authenticated.");
+
+                    console.log(userDTO)
+
+                    if(!userDTO.isSetup)
+                        switchToState(LoginState.SETUP);
+                    else
+                        activeTabState.setActiveTab(ActiveTab.SENSORS);
+
+                } catch (e) {
+
+                    console.log(e)
+
+                    toast.error("The email/password combination is incorrect.");
+                    setIsWaiting(false)
+                    return;
+                }
+
+                break;
+            case LoginState.SETUP:
+                if(loginUser.firstName == null || loginUser.firstName === "") {
+                    toast.error("A first name is required to setup.");
+                    setIsWaiting(false)
+                    return;
+                }
+
+                if(loginUser.lastName == null || loginUser.lastName === "") {
+                    toast.error("A last name is required to setup.");
+                    setIsWaiting(false)
+                    return;
+                }
+
+                if(loginUser.address == null || loginUser.address === "") {
+                    toast.error("An address is required to setup.");
+                    setIsWaiting(false)
+                    return;
+                }
+
+                if(loginUser.jobDescription == null || loginUser.jobDescription === "") {
+                    toast.error("A job description is required to setup.");
+                    setIsWaiting(false)
+                    return;
+                }
+
+                if(loginUser.phoneExtension == null || loginUser.phoneExtension === "") {
+                    toast.error("A phone extension is required to setup.");
+                    setIsWaiting(false)
+                    return;
+                }
+
+                if(loginUser.phoneNumber == null || loginUser.phoneNumber === "") {
+                    toast.error("A phone number is required to setup.");
+                    setIsWaiting(false)
+                    return;
+                }
+
+                try {
+                    let currentToken = appUser.user?.token;
+                    const registerRequest = await UserService.register(loginUser, currentToken);
+
+                    const userDTO: UserDTO = (registerRequest) as UserDTO;
+                    userDTO.token = currentToken;
+
+                    login(userDTO);
+                    setIsWaiting(false);
+
+                    toast.success("Successfully registered your account.");
+                    activeTabState.setActiveTab(ActiveTab.SENSORS);
+                } catch (e) {
+
+                    console.log(e)
+
+                    toast.error("The token seems to have expired, login again.");
+                    setIsWaiting(false)
+                    return;
+                }
 
                 break;
         }
@@ -77,17 +173,11 @@ const Login: React.FC = () => {
         window.open(url, '_blank', 'noopener,noreferrer');
     };
 
-    const resendCode = () => {
-        //todo resend code...
-
+    const login = (user: UserDTO) => {
+        appUser.setUser?.(user);
+        saveUserLocally(user);
     }
 
-    const login = () => {
-
-    }
-
-    const logout = () => {
-    }
 
     const [styles, api] = useSpring(() => ({
         loop: false,
@@ -165,7 +255,7 @@ const Login: React.FC = () => {
                         <form onSubmit={handleStep} className={"flex flex-col h-24 w-full items-start justify-between"}>
                             <p className="font-gilroy">Email</p>
                             <input
-                                type="text"
+                                type="email"
                                 className='border-solid border-2 border-gray-100 rounded-md h-9 w-80 mb-5 pl-1'
                                 required
                                 value={loginUser.email}
@@ -195,7 +285,7 @@ const Login: React.FC = () => {
                             <form className={"flex flex-col h-24 w-full items-start justify-between"} onSubmit={handleStep}>
                                 <p className="font-gilroy">Password</p>
                                 <input
-                                    type="text"
+                                    type="password"
                                     className='border-solid border-2 border-gray-100 rounded-md h-9 w-80 mb-5 pl-1'
                                     required
                                     value={loginUser.password}
@@ -214,9 +304,130 @@ const Login: React.FC = () => {
                             </button>
                         </animated.div>
 
-                        :
-                            <></>
+                        :currentState === LoginState.SETUP ?
 
+                            <animated.div style={styles} className="flex flex-col h-128 w-full items-start justify-between">
+                                <div className="flex flex-col h-20 w-full items-start justify-between">
+                                    <p className="text-4xl font-gilroyBold">Please fill your details 👤</p>
+                                    <p className="text-xl text-gray-500 font-gilroyLight">It seems you're setting up your account. Input your details!</p>
+                                </div>
+
+                                <form className={"flex flex-col h-72 w-full items-start justify-between"} onSubmit={handleStep}>
+
+                                    <div className={"flex flex-row w-10/12 justify-between items-start"}>
+                                        <div className={"flex flex-col"}>
+                                            <p className="font-gilroy">First Name</p>
+                                            <input
+                                                type="text"
+                                                className='border-solid border-2 border-gray-100 rounded-md h-9 w-80 mb-5 pl-1'
+                                                required
+                                                value={loginUser.firstName}
+                                                onChange={(e) => {
+                                                    setLoginUser({
+                                                        ...loginUser,
+                                                        firstName: e.target.value
+                                                    });
+                                                }
+                                                }
+                                            />
+                                        </div>
+                                        <div className={"flex flex-col"}>
+                                            <p className="font-gilroy">Last Name</p>
+                                            <input
+                                                type="text"
+                                                className='border-solid border-2 border-gray-100 rounded-md h-9 w-80 mb-5 pl-1'
+                                                required
+                                                value={loginUser.lastName}
+                                                onChange={(e) => {
+                                                    setLoginUser({
+                                                        ...loginUser,
+                                                        lastName: e.target.value
+                                                    });
+                                                }
+                                                }
+                                            />
+                                        </div>
+                                    </div>
+
+
+                                    <div className={"flex flex-row w-10/12 justify-between items-start"}>
+                                        <div className={"flex flex-col"}>
+                                            <p className="font-gilroy">Address</p>
+                                            <input
+                                                type="text"
+                                                className='border-solid border-2 border-gray-100 rounded-md h-9 w-80 mb-5 pl-1'
+                                                required
+                                                value={loginUser.address}
+                                                onChange={(e) => {
+                                                    setLoginUser({
+                                                        ...loginUser,
+                                                        address: e.target.value
+                                                    });
+                                                }
+                                                }
+                                            />
+                                        </div>
+                                        <div className={"flex flex-col"}>
+                                            <p className="font-gilroy">Job Description</p>
+                                            <input
+                                                type="text"
+                                                className='border-solid border-2 border-gray-100 rounded-md h-9 w-80 mb-5 pl-1'
+                                                required
+                                                value={loginUser.jobDescription}
+                                                onChange={(e) => {
+                                                    setLoginUser({
+                                                        ...loginUser,
+                                                        jobDescription: e.target.value
+                                                    });
+                                                }
+                                                }
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className={"flex flex-row w-10/12 justify-between items-start"}>
+                                        <div className={"flex flex-col"}>
+                                            <p className="font-gilroy">Phone Extension</p>
+                                            <input
+                                                type="text"
+                                                className='border-solid border-2 border-gray-100 rounded-md h-9 w-11 mb-5 pl-1'
+                                                required
+                                                value={loginUser.phoneExtension}
+                                                onChange={(e) => {
+                                                    setLoginUser({
+                                                        ...loginUser,
+                                                        phoneExtension: e.target.value
+                                                    });
+                                                }
+                                                }
+                                            />
+                                        </div>
+                                        <div className={"flex flex-col"}>
+                                            <p className="font-gilroy">Phone Number</p>
+                                            <input
+                                                type="text"
+                                                className='border-solid border-2 border-gray-100 rounded-md h-9 w-80 mb-5 pl-1'
+                                                required
+                                                value={loginUser.phoneNumber}
+                                                onChange={(e) => {
+                                                    setLoginUser({
+                                                        ...loginUser,
+                                                        phoneNumber: e.target.value
+                                                    });
+                                                }
+                                                }
+                                            />
+                                        </div>
+                                    </div>
+
+                                </form>
+
+                                <button className='bg-black rounded-full h-14 w-44 hover:bg-gray-900' onClick={handleStep}>
+                                    <p className='text-white text-l font-small self-center font-gilroyBold'>Continue</p>
+                                </button>
+                            </animated.div>
+
+                            : <></>
                 }
 
             </div>
