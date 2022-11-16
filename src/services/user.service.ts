@@ -1,9 +1,10 @@
 import {UserLoginRequestDto} from "../dtos/user";
+const  {REACT_APP_DEV_SENSORIFY_API_URL} = process.env
 
 export class UserService {
 
     public static login = async (loginRequest: UserLoginRequestDto): Promise<any> => {
-        const resp = await fetch(`/user/login`, {
+        const resp = await fetch(REACT_APP_DEV_SENSORIFY_API_URL + `/user/login`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -20,7 +21,7 @@ export class UserService {
     }
 
     public static register = async (registerRequest: UserLoginRequestDto, token: string | undefined): Promise<any> => {
-        const resp = await fetch(`/user/setup`, {
+        const resp = await fetch(REACT_APP_DEV_SENSORIFY_API_URL + `/user/setup`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -39,7 +40,7 @@ export class UserService {
     }
 
     public static toggleSensor = async (token: string | undefined, sensorId: string): Promise<any> => {
-        const resp = await fetch(`/user/sensor/toggle`, {
+        const resp = await fetch(REACT_APP_DEV_SENSORIFY_API_URL + `/user/sensor/toggle`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

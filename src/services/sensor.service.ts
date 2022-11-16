@@ -1,7 +1,9 @@
+const  {REACT_APP_DEV_SENSORIFY_API_URL} = process.env
+
 export class SensorService {
 
     public static fetchSensors = async (token: string | undefined): Promise<any> => {
-        const resp = await fetch(`/sensor/get`, {
+        const resp = await fetch(REACT_APP_DEV_SENSORIFY_API_URL + `/sensor/get`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -15,7 +17,7 @@ export class SensorService {
     }
 
     public static getSensor = async (token: string | undefined, sensorId: String, limitCount: number): Promise<any> => {
-        const resp = await fetch(`/sensor/get/` + sensorId + "?limitAmount=" + limitCount, {
+        const resp = await fetch(REACT_APP_DEV_SENSORIFY_API_URL + `/sensor/get/` + sensorId + "?limitAmount=" + limitCount, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -29,7 +31,7 @@ export class SensorService {
     }
 
     public static createSensor = async(token: string | undefined, sensorName: String, sensorDescription: String) : Promise<any> => {
-        const resp = await fetch(`/sensor/register/`, {
+        const resp = await fetch(REACT_APP_DEV_SENSORIFY_API_URL + `/sensor/register/`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
