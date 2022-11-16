@@ -14,8 +14,8 @@ export class SensorService {
         return await resp.json();
     }
 
-    public static getSensor = async (token: string | undefined, sensorId: String): Promise<any> => {
-        const resp = await fetch(`/sensor/get/` + sensorId, {
+    public static getSensor = async (token: string | undefined, sensorId: String, limitCount: number): Promise<any> => {
+        const resp = await fetch(`/sensor/get/` + sensorId + "?limitAmount=" + limitCount, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",

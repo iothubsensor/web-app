@@ -31,8 +31,8 @@ export class UserDTO {
 }
 
 export enum Role {
-  customer = 0,
-  admin = 1
+  Customer = 0,
+  Admin = 1
 }
 
 export class UserLoginRequestDto {

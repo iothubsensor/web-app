@@ -1,9 +1,9 @@
-import React, {Fragment, useContext, useEffect, useState} from "react";
+import React, {Fragment, useContext, useEffect, useRef, useState} from "react";
 import {UserContext} from "../../context/UserContext";
 import {animated, useSpring} from "react-spring";
 
-import { Dialog, Switch, Transition } from '@headlessui/react'
-import {LoginState, UserDTO} from "../../dtos/user";
+import {Dialog, Listbox, Switch, Transition} from '@headlessui/react'
+import {LoginState, Role, UserDTO} from "../../dtos/user";
 import {ToggleSwitch} from "flowbite-react";
 import {SensorDTO} from "../../dtos/sensor";
 import toast from "react-hot-toast";
@@ -22,6 +22,8 @@ import {
     Legend,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
+import {ChevronUpDownIcon} from "@heroicons/react/24/outline";
+import {CheckIcon} from "@heroicons/react/20/solid";
 
 ChartJS.register(
     CategoryScale,
@@ -43,6 +45,9 @@ const Sensors: React.FC = () => {
     const [isModalOpen, setModalOpen] = useState<boolean>(false);
     const [sensorsData, setSensorsData] = useState<SensorDTO[]>([]);
 
+    const limitList = [10, 15, 20, 25, 30];
+
+    const [dataLimit, setDataLimit] = useState<number>(10);
 
     const [activeSensor, setActiveSensor] = useState<String | null>((user!.sensors!.length !== 0) ? user!.sensors![0] : null);
 
@@ -79,6 +84,8 @@ const Sensors: React.FC = () => {
             api({ reset: false });
     }, [api, isModalOpen])
 
+    const oldGraphData = useRef<SensorDTO>();
+
     useEffect(() => {
         fetchSensors();
 
@@ -87,22 +94,38 @@ const Sensors: React.FC = () => {
                 if (activeSensorId == null)
                     return null;
 
-                SensorService.getSensor(user!.token, activeSensorId).then(response => {
-                    const sensorDTO: SensorDTO = response.data;
+                setDataLimit(dataLimitConc => {
+                    SensorService.getSensor(user!.token, activeSensorId, dataLimitConc).then(response => {
+                        const sensorDTO: SensorDTO = response.data;
 
-                    const labels = sensorDTO.datas.map(sens => sens.date);
+                        if(oldGraphData.current !== sensorDTO) {
+                            oldGraphData.current = sensorDTO;
 
-                    setChart({
-                        labels: labels,
-                        datasets: [
-                            {
-                                label: 'Sensor Data',
-                                data: sensorDTO.datas.map(sens => sens.data),
-                                borderColor: 'rgb(255, 99, 132)',
-                                backgroundColor: 'rgba(255, 99, 132, 0.5)',
-                            }
-                        ]
-                    })
+                            const labels = sensorDTO.datas.map(sens => new Date(sens.date).toLocaleString("en-GB", {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                                hour: "numeric",
+                                minute: "2-digit",
+                                second: "2-digit"
+                            }));
+
+                            setChart({
+                                labels: labels,
+                                datasets: [
+                                    {
+                                        label: 'Sensor Data',
+                                        data: sensorDTO.datas.map(sens => sens.data),
+                                        borderColor: 'rgb(255, 99, 132)',
+                                        backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                                    }
+                                ]
+                            })
+                        }
+
+                    });
+
+                    return dataLimitConc;
                 });
 
                 return activeSensorId
@@ -164,13 +187,10 @@ const Sensors: React.FC = () => {
                 display: false
             },
             title: {
-                display: true,
-                text: 'Chart.js Line Chart',
-            },
+                display: true
+            }
         },
     };
-
-    console.log(user!);
 
     return (
 
@@ -279,7 +299,133 @@ const Sensors: React.FC = () => {
                 }
 
                 {user?.sensors?.length !== 0 &&
-                    <Line options={options} data={getChart} />
+                    <div className="flex flex-row w-full h-full gap-20 items-center justify-center">
+
+                        <div className={"w-1/2 h-1/2"}>
+                            <Line options={options} data={getChart} />
+                        </div>
+
+                        <div className={"flex flex-col w-1/4 h-40 justify-between items-center"}>
+
+                            <div className={"flex flex-row w-full justify-between items-center"}>
+                                <div className={"flex flex-col"}>
+                                    <p className={"font-gilroyBold text-lg"}>Active Sensor</p>
+                                    <Listbox value={activeSensor} onChange={setActiveSensor}>
+                                        <div className="relative mt-1">
+                                            <Listbox.Button className="relative w-full cursor-default rounded-lg bg-white py-2 pl-3 pr-10 text-left shadow-md focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm">
+                                                <span className="block truncate">{activeSensor}</span>
+                                                <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                                                                  <ChevronUpDownIcon
+                                                                      className="h-5 w-5 text-gray-400"
+                                                                      aria-hidden="true"
+                                                                  />
+                                                                </span>
+                                            </Listbox.Button>
+                                            <Transition
+                                                as={Fragment}
+                                                leave="transition ease-in duration-100"
+                                                leaveFrom="opacity-100"
+                                                leaveTo="opacity-0"
+                                            >
+                                                <Listbox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                                                    {user!.sensors!.map((sensor, sensorIdx) => (
+                                                        <Listbox.Option
+                                                            key={sensorIdx}
+                                                            className={({ active }) =>
+                                                                `relative cursor-default select-none py-2 pl-10 pr-4 ${
+                                                                    active ? 'bg-amber-100 text-amber-900' : 'text-gray-900'
+                                                                }`
+                                                            }
+                                                            value={sensor}
+                                                        >
+                                                            {({ selected }) => (
+                                                                <>
+                                                                                  <span
+                                                                                      className={`block truncate ${
+                                                                                          selected ? 'font-medium' : 'font-normal'
+                                                                                      }`}
+                                                                                  >
+                                                                                    {sensor}
+                                                                                  </span>
+                                                                    {selected ? (
+                                                                        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-amber-600">
+                                                                                          <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                                                                                        </span>
+                                                                    ) : null}
+                                                                </>
+                                                            )}
+                                                        </Listbox.Option>
+                                                    ))}
+                                                </Listbox.Options>
+                                            </Transition>
+                                        </div>
+                                    </Listbox>
+                                </div>
+
+                                <button className='bg-black rounded-full h-16 w-40 hover:bg-gray-900 flex items-center justify-center' onClick={() => {
+                                    setModalOpen(true)
+                                }}>
+                                    <i className="text-sm fa-solid fa-wrench text-white mr-2 "></i>
+                                    <p className='text-white text-sm font-medium self-center font-gilroyBold'>Attach a sensor</p>
+                                </button>
+                            </div>
+
+                            <div className="flex flex-col h-18 justify-between items-center">
+                                <p className={"font-gilroyBold text-lg"}>Data Limit</p>
+                                <Listbox value={dataLimit} onChange={setDataLimit}>
+                                    <div className="relative mt-1">
+                                        <Listbox.Button className="relative w-full cursor-default rounded-lg bg-white py-2 pl-3 pr-10 text-left shadow-md focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm">
+                                            <span className="block truncate">{dataLimit}</span>
+                                            <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                                                                  <ChevronUpDownIcon
+                                                                      className="h-5 w-5 text-gray-400"
+                                                                      aria-hidden="true"
+                                                                  />
+                                                                </span>
+                                        </Listbox.Button>
+                                        <Transition
+                                            as={Fragment}
+                                            leave="transition ease-in duration-100"
+                                            leaveFrom="opacity-100"
+                                            leaveTo="opacity-0"
+                                        >
+                                            <Listbox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                                                {limitList.map((dataLimitNum, dataLimitIdx) => (
+                                                    <Listbox.Option
+                                                        key={dataLimitIdx}
+                                                        className={({ active }) =>
+                                                            `relative cursor-default select-none py-2 pl-9 pr-4 ${
+                                                                active ? 'bg-amber-100 text-amber-900' : 'text-gray-900'
+                                                            }`
+                                                        }
+                                                        value={dataLimitNum}
+                                                    >
+                                                        {({ selected }) => (
+                                                            <>
+                                                                                  <span
+                                                                                      className={`block truncate ${
+                                                                                          selected ? 'font-medium' : 'font-normal'
+                                                                                      }`}
+                                                                                  >
+                                                                                    {dataLimitNum}
+                                                                                  </span>
+                                                                {selected ? (
+                                                                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-amber-600">
+                                                                                          <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                                                                                        </span>
+                                                                ) : null}
+                                                            </>
+                                                        )}
+                                                    </Listbox.Option>
+                                                ))}
+                                            </Listbox.Options>
+                                        </Transition>
+                                    </div>
+                                </Listbox>
+                            </div>
+
+                        </div>
+                    </div>
                 }
 
             </div>

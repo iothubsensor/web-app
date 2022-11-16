@@ -6,9 +6,8 @@ import Login from "./components/screens/Login";
 
 import {UserContext} from './context/UserContext';
 
-import {Toaster} from "react-hot-toast";
+import toast, {Toaster} from "react-hot-toast";
 import {Role, UserDTO} from "./dtos/user";
-import TOS from "./components/screens/TOS";
 import Sensors from "./components/screens/Sensors";
 import {destroyUserLocally, loadUserLocally} from "./services/storage.service";
 
@@ -31,6 +30,8 @@ function App() {
 
         response: function (response) {
             if(!response.ok && (response.status === 401)) {
+                toast.dismiss();
+
                 destroyUserLocally()
                 setUser(null)
             }
@@ -50,10 +51,9 @@ function App() {
 
                 <div className="h-screen w-screen">
                     <div className="h-screen w-full flex flex-col pl-64 pt-8">
-                        {user === null ?
+                        {(user === null) || !user.isSetup ?
                             <Login activeTabState={{ activeTab, setActiveTab }} /> :
-                            activeTab === ActiveTab.TOS ?
-                                <TOS/> : activeTab === ActiveTab.SENSORS ? <Sensors/> : <Admin/>
+                            activeTab === ActiveTab.SENSORS ? <Sensors/> : <Admin/>
                         }
                     </div>
                 </div>

@@ -36,14 +36,6 @@ const Sidebar: React.FC<any> = ({ activeTabState }) => {
                                 <i className="fa-solid fa-gear mr-1"/> Sensors
                             </button>
                         }
-
-                        <button onClick={() => {
-                            setUser?.(null);
-                            destroyUserLocally()
-                            changeActiveTab(ActiveTab.Login)
-                        }} className={"transition ease-in-out font-gilroy text-slate-500 hover:text-black hover:scale-105"}>
-                            <i className="fa-solid fa-unlock mr-1"/> Logout
-                        </button>
                     </>
                 }
 
@@ -51,13 +43,19 @@ const Sidebar: React.FC<any> = ({ activeTabState }) => {
                     <i className="fa-solid fa-file-code mr-1"/> Source Code
                 </button>
 
-                <button onClick={() => { changeActiveTab(ActiveTab.TOS) }} className={"transition ease-in-out font-gilroy hover:text-black hover:scale-105 " + (activeTabState.activeTab === ActiveTab.TOS ? 'text-black scale-105' : 'text-slate-500')}>
-                    <i className="fa-solid fa-book mr-1"/> ToS
-                </button>
-
-                {user != null && user.role === Role.admin &&
+                {user != null && user.role === Role.Admin && user.isSetup &&
                     <button onClick={() => { changeActiveTab(ActiveTab.ADMIN) }} className={"transition ease-in-out font-gilroy hover:text-black hover:scale-105 " + (activeTabState.activeTab === ActiveTab.ADMIN ? 'text-black scale-105' : 'text-slate-500')}>
                         <i className="fa-solid fa-user mr-1"/> Admin Panel
+                    </button>
+                }
+
+                {user != null &&
+                    <button onClick={() => {
+                        setUser?.(null);
+                        destroyUserLocally()
+                        changeActiveTab(ActiveTab.Login)
+                    }} className={"transition ease-in-out font-gilroy text-slate-500 hover:text-black hover:scale-105"}>
+                        <i className="fa-solid fa-unlock mr-1"/> Logout
                     </button>
                 }
             </div>

@@ -5,19 +5,29 @@ import {ActiveModal} from "../../utils/global";
 import toast from "react-hot-toast";
 import {SensorService} from "../../services/sensor.service";
 import {UserContext} from "../../context/UserContext";
+import { Listbox } from '@headlessui/react'
+import {Role} from "../../dtos/user";
+import {UserService} from "../../services/user.service";
+import {ChevronUpDownIcon} from "@heroicons/react/24/outline";
+import {CheckIcon} from "@heroicons/react/20/solid";
 
 const Admin: React.FC = () => {
 
     const {user, setUser} = useContext(UserContext);
     const [userModal, setUserModal] = useState<boolean>(false);
     const [sensorModal, setSensorModal] = useState<boolean>(false);
-
     const [waiting, setWaiting] = useState<boolean>(false);
 
     const [sensorInfo, setSensorInfo] = useState<any>({
         name: "",
         description: "",
         token: ""
+    });
+
+    const [userInfo, setUserInfo] = useState<any>({
+        email: "",
+        password: "",
+        role: "Customer"
     });
 
     const [styles, api] = useSpring(() => ({
@@ -33,6 +43,14 @@ const Admin: React.FC = () => {
         from: { opacity: 0 },
         to: { opacity: 1 }
     }))
+
+    const validateEmail = (email: string) => {
+        return String(email)
+            .toLowerCase()
+            .match(
+                /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+            );
+    };
 
     const createSensor = async(e: any) => {
         e.preventDefault();
@@ -63,6 +81,32 @@ const Admin: React.FC = () => {
         setWaiting(false)
     };
 
+    const createUser = async(e: any) => {
+        e.preventDefault();
+
+        toast.dismiss();
+        setWaiting(true);
+
+        if(!validateEmail(userInfo.email)) {
+            toast.error("A valid email should be provided.")
+        } else if (userInfo.password === "") {
+            toast.error("A valid password should be provided.")
+        } else {
+            try {
+                //const registerUser = await UserService.createUser(user!.token, userInfo.email, userInfo.password);
+
+                //toast.success("Successfully created the sensor");
+
+
+            } catch (e) {
+                toast.error("An error occured whilst creating the sensor.")
+            }
+        }
+
+        setWaiting(false)
+    };
+
+    console.log(userInfo)
 
     return (
         <animated.div style={initialLoad} className="flex flex-col w-11/12 h-full items-start justify-start mx-16 mt-12">
@@ -120,8 +164,128 @@ const Admin: React.FC = () => {
 
                                     <div className="mt-5">
                                         <p className="text-sm font-gilroyLight text-gray-500">
-                                            Pick a sensor from the list below to attach to your account
+                                            Input the details below in order to create a new user.
                                         </p>
+                                    </div>
+
+                                    <div className={"flex flex-col h-80 w-full items-start justify-between mt-8"}>
+                                        <div className="flex flex-col w-full h-44 justify-between items-start">
+                                            <div className={"flex flex-row w-full justify-between items-start"}>
+                                                <div className={"flex flex-col"}>
+                                                    <p className="font-gilroy">Email</p>
+                                                    <input
+                                                        type="email"
+                                                        className='border-solid border-2 border-gray-100 rounded-md h-9 w-80 mb-5 pl-1'
+                                                        required
+                                                        value={userInfo.email}
+                                                        onChange={(e) => {
+                                                            setUserInfo({
+                                                                ...userInfo,
+                                                                email: e.target.value
+                                                            });
+                                                        }
+                                                        }
+                                                        disabled={waiting}
+                                                    />
+                                                </div>
+                                                <div className={"flex flex-col"}>
+                                                    <p className="font-gilroy">Password</p>
+                                                    <input
+                                                        type="text"
+                                                        className='border-solid border-2 border-gray-100 rounded-md h-9 w-80 mb-5 pl-1'
+                                                        required
+                                                        value={userInfo.password}
+                                                        onChange={(e) => {
+                                                            setUserInfo({
+                                                                ...userInfo,
+                                                                password: e.target.value
+                                                            });
+                                                        }
+                                                        }
+                                                        disabled={waiting}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className={"flex flex-row w-full justify-center items-start"}>
+                                                <div className={"flex flex-col"}>
+                                                    <p className="font-gilroy">Role</p>
+
+                                                    <Listbox value={userInfo.role} onChange={(e) => {
+                                                        setUserInfo({
+                                                            ...userInfo,
+                                                            role: e
+                                                        })
+                                                    }}>
+                                                        <div className="relative mt-1">
+                                                            <Listbox.Button className="relative w-full cursor-default rounded-lg bg-white py-2 pl-3 pr-10 text-left shadow-md focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm">
+                                                                <span className="block truncate">{userInfo.role}</span>
+                                                                <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                                                                  <ChevronUpDownIcon
+                                                                      className="h-5 w-5 text-gray-400"
+                                                                      aria-hidden="true"
+                                                                  />
+                                                                </span>
+                                                            </Listbox.Button>
+                                                            <Transition
+                                                                as={Fragment}
+                                                                leave="transition ease-in duration-100"
+                                                                leaveFrom="opacity-100"
+                                                                leaveTo="opacity-0"
+                                                            >
+                                                                <Listbox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                                                                    {Object.keys(Role).filter((v) => isNaN(Number(v))).map((role, roleIdx) => (
+                                                                        <Listbox.Option
+                                                                            key={roleIdx}
+                                                                            className={({ active }) =>
+                                                                                `relative cursor-default select-none py-2 pl-10 pr-4 ${
+                                                                                    active ? 'bg-amber-100 text-amber-900' : 'text-gray-900'
+                                                                                }`
+                                                                            }
+                                                                            value={role}
+                                                                        >
+                                                                            {({ selected }) => (
+                                                                                <>
+                                                                                  <span
+                                                                                      className={`block truncate ${
+                                                                                          selected ? 'font-medium' : 'font-normal'
+                                                                                      }`}
+                                                                                  >
+                                                                                    {role}
+                                                                                  </span>
+                                                                                    {selected ? (
+                                                                                        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-amber-600">
+                                                                                          <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                                                                                        </span>
+                                                                                    ) : null}
+                                                                                </>
+                                                                            )}
+                                                                        </Listbox.Option>
+                                                                    ))}
+                                                                </Listbox.Options>
+                                                            </Transition>
+                                                        </div>
+                                                    </Listbox>
+                                                </div>
+                                            </div>
+                                        </div>
+
+
+                                        <div className={"flex flex-row w-full justify-center items-start gap-8"}>
+                                            <button className={`bg-black rounded-full h-14 w-44 hover:bg-gray-900 hover:scale-110 transition ease-in-out duration-300 ${(waiting || (userInfo.email === '' && userInfo.password === '')) ? 'cursor-not-allowed disabled' : ''}`} onClick={() => {
+                                                setUserInfo({
+                                                    email: "",
+                                                    password: "",
+                                                    role: "Customer"
+                                                });
+                                            }}>
+                                                <p className='text-white text-l font-small self-center font-gilroyBold'>Reset User</p>
+                                            </button>
+                                            <button className={`bg-black rounded-full h-14 w-44 hover:bg-gray-900 hover:scale-110 transition ease-in-out duration-300 ${waiting ? 'disabled' : ''}`} onClick={createUser}>
+                                                <p className='text-white text-l font-small self-center font-gilroyBold'>Create User</p>
+                                            </button>
+                                        </div>
+
                                     </div>
                                 </Dialog.Panel>
                             </Transition.Child>
@@ -169,7 +333,7 @@ const Admin: React.FC = () => {
                                         </p>
                                     </div>
 
-                                    <form className={"flex flex-col h-80 w-full items-start justify-between mt-8"} onSubmit={createSensor}>
+                                    <div className={"flex flex-col h-80 w-full items-start justify-between mt-8"}>
 
                                         <div className="flex flex-col w-full h-44 justify-between items-start">
                                             <div className={"flex flex-row w-full justify-between items-start"}>
@@ -245,7 +409,7 @@ const Admin: React.FC = () => {
                                             </button>
                                         </div>
 
-                                    </form>
+                                    </div>
                                 </Dialog.Panel>
                             </Transition.Child>
                         </div>

@@ -83,6 +83,7 @@ const Login: React.FC<any> = ({ activeTabState }) => {
                     toast.success("Successfully authenticated.");
 
                     console.log(userDTO)
+                    console.log(userDTO.isSetup)
 
                     if(!userDTO.isSetup)
                         switchToState(LoginState.SETUP);
