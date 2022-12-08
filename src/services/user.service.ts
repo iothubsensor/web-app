@@ -61,7 +61,7 @@ export class UserService {
                 "Content-Type": "application/json",
                 "Authorization": "Bearer " + token,
             },
-            body: JSON.stringify({email: email, password: password, role: role})
+            body: JSON.stringify({email: email, password: password, role: (role === "Customer" ? 0 : 1)})
         });
 
         if (!resp.ok) throw new Error(resp.statusText);

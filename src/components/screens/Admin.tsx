@@ -96,6 +96,7 @@ const Admin: React.FC = () => {
         } else {
             try {
                 const registerUser = await UserService.createUser(user!.token, userInfo.email, userInfo.password, userInfo.role);
+                toast.dismiss();
                 toast.success("Successfully created the user");
                 setUserModal(false)
             } catch (e) {

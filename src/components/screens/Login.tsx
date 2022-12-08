@@ -83,6 +83,7 @@ const Login: React.FC<any> = ({ activeTabState }) => {
                     login(userDTO);
                     setIsWaiting(false);
 
+                    toast.dismiss();
                     toast.success("Successfully authenticated.");
 
                     console.log(userDTO)
