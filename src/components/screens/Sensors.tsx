@@ -187,7 +187,8 @@ const Sensors: React.FC = () => {
                 display: false
             },
             title: {
-                display: true
+                display: true,
+                text: sensorsData.find(s => s.sensorId === sensor)?.name + " Sensor" ?? activeSensor + " Sensor"
             }
         },
     };
