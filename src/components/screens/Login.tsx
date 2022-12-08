@@ -72,6 +72,9 @@ const Login: React.FC<any> = ({ activeTabState }) => {
                 }
 
                 try {
+                    toast.dismiss();
+                    toast.loading("Attempting to log you in...");
+
                     const loginDetails = await UserService.login(loginUser);
 
                     const userDTO: UserDTO = (loginDetails.data.user) as UserDTO;
@@ -423,7 +426,7 @@ const Login: React.FC<any> = ({ activeTabState }) => {
 
                                 </form>
 
-                                <button className='bg-black rounded-full h-14 w-44 hover:bg-gray-900' onClick={handleStep}>
+                                <button className={`bg-black rounded-full h-14 w-44 hover:bg-gray-900 ${isWaiting ? 'disabled cursor-disabled' : ''}`} onClick={handleStep}>
                                     <p className='text-white text-l font-small self-center font-gilroyBold'>Continue</p>
                                 </button>
                             </animated.div>

@@ -345,7 +345,9 @@ const Sensors: React.FC = () => {
                                                                                           selected ? 'font-medium' : 'font-normal'
                                                                                       }`}
                                                                                   >
-                                                                                    {sensor}
+                                                                                    {
+                                                                                        sensorsData.find(s => s.sensorId === sensor)?.name ?? sensor
+                                                                                    }
                                                                                   </span>
                                                                     {selected ? (
                                                                         <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-amber-600">

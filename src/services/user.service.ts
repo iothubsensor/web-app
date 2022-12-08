@@ -54,4 +54,23 @@ export class UserService {
         return await resp.json();
     }
 
+    public static createUser = async (token: string | undefined, email: string, password: string, role: string): Promise<any> => {
+        const resp = await fetch(REACT_APP_DEV_SENSORIFY_API_URL + `/user/register`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + token,
+            },
+            body: JSON.stringify({email: email, password: password, role: role})
+        });
+
+        if (!resp.ok) throw new Error(resp.statusText);
+        const data = await resp.json();
+
+        console.log(data)
+
+        return data;
+
+    }
+
 }

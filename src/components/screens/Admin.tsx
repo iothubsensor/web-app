@@ -85,6 +85,8 @@ const Admin: React.FC = () => {
         e.preventDefault();
 
         toast.dismiss();
+        toast.loading("Creating the user...");
+
         setWaiting(true);
 
         if(!validateEmail(userInfo.email)) {
@@ -93,11 +95,9 @@ const Admin: React.FC = () => {
             toast.error("A valid password should be provided.")
         } else {
             try {
-                //const registerUser = await UserService.createUser(user!.token, userInfo.email, userInfo.password);
-
-                //toast.success("Successfully created the sensor");
-
-
+                const registerUser = await UserService.createUser(user!.token, userInfo.email, userInfo.password, userInfo.role);
+                toast.success("Successfully created the user");
+                setUserModal(false)
             } catch (e) {
                 toast.error("An error occured whilst creating the sensor.")
             }
