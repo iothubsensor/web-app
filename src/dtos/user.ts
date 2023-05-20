@@ -1,31 +1,22 @@
-import {SensorDTO} from "./sensor";
+import {PlantDTO} from "./plant";
 import {ActiveTab} from "../utils/global";
 
 export class UserDTO {
   userId: number;
+  admin: Boolean;
   email: string;
-  role: Role;
-  phoneExtension: string;
-  phoneNumber: string;
-  address: string;
-  jobDescription: string;
-  isSetup: boolean;
   token: string | undefined;
   screen: ActiveTab;
-  sensors?: Array<String>;
+  plants?: Array<String>;
 
-  constructor(userId: number, email: string, role: Role, screen: ActiveTab, token: string, phoneExtension: string, phoneNumber: string, address: string, jobDescription: string, isSetup: boolean, sensors: Array<String>) {
+  constructor(userId: number, email: string, screen: ActiveTab, token: string, plants: Array<String>,admin: Boolean) {
     this.userId = userId;
     this.email = email;
-    this.role = role;
-    this.phoneExtension = phoneExtension;
-    this.phoneNumber = phoneNumber;
-    this.address = address;
-    this.jobDescription = jobDescription;
-    this.isSetup = isSetup;
     this.token = token;
     this.screen = screen;
-    this.sensors = sensors;
+    this.plants = plants;
+    this.admin = admin;
+
   }
 
 }

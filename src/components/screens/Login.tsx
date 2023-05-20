@@ -77,8 +77,8 @@ const Login: React.FC<any> = ({ activeTabState }) => {
 
                     const loginDetails = await UserService.login(loginUser);
 
-                    const userDTO: UserDTO = (loginDetails.data.user) as UserDTO;
-                    userDTO.token = loginDetails.data.token;
+                    const userDTO: UserDTO = (loginDetails.user) as UserDTO;
+                    userDTO.token = loginDetails.access_token;
 
                     login(userDTO);
                     setIsWaiting(false);
@@ -86,13 +86,9 @@ const Login: React.FC<any> = ({ activeTabState }) => {
                     toast.dismiss();
                     toast.success("Successfully authenticated.");
 
-                    console.log(userDTO)
-                    console.log(userDTO.isSetup)
+                    console.log(userDTO);
 
-                    if(!userDTO.isSetup)
-                        switchToState(LoginState.SETUP);
-                    else
-                        activeTabState.setActiveTab(ActiveTab.SENSORS);
+                    activeTabState.setActiveTab(ActiveTab.SENSORS);
 
                 } catch (e) {
 
@@ -253,7 +249,7 @@ const Login: React.FC<any> = ({ activeTabState }) => {
                 {currentState === LoginState.INPUT_EMAIL ?
                     <animated.div style={styles} className={`flex flex-col h-80 w-full items-start justify-between`}>
                         <div className="flex flex-col h-20 w-full items-start justify-between">
-                            <p className="text-4xl font-gilroyBold">Welcome to Sensorify 👋</p>
+                            <p className="text-4xl font-gilroyBold">Welcome to Plantify 👋</p>
                             <p className="text-xl text-gray-500 font-gilroyLight">Please enter your email.</p>
                         </div>
 

@@ -3,7 +3,7 @@ import {animated, useSpring} from "react-spring";
 import {Dialog, Transition} from "@headlessui/react";
 import {ActiveModal} from "../../utils/global";
 import toast from "react-hot-toast";
-import {SensorService} from "../../services/sensor.service";
+import {PlantService} from "../../services/plant.service";
 import {UserContext} from "../../context/UserContext";
 import { Listbox } from '@headlessui/react'
 import {Role} from "../../dtos/user";
@@ -52,7 +52,7 @@ const Admin: React.FC = () => {
             );
     };
 
-    const createSensor = async(e: any) => {
+    const createPlant = async(e: any) => {
         e.preventDefault();
 
         toast.dismiss();
@@ -64,7 +64,7 @@ const Admin: React.FC = () => {
             toast.error("A sensor description should be provided.")
         } else {
             try {
-                const registerSensor = await SensorService.createSensor(user!.token, sensorInfo.name, sensorInfo.description);
+                const registerSensor = await PlantService.createPlant(user!.token, sensorInfo.name, sensorInfo.description);
 
                 toast.success("Successfully created the sensor");
 
@@ -405,7 +405,7 @@ const Admin: React.FC = () => {
                                             }}>
                                                 <p className='text-white text-l font-small self-center font-gilroyBold'>Reset Sensor</p>
                                             </button>
-                                            <button className={`bg-black rounded-full h-14 w-44 hover:bg-gray-900 hover:scale-110 transition ease-in-out duration-300 ${waiting ? 'disabled' : ''}`} onClick={createSensor}>
+                                            <button className={`bg-black rounded-full h-14 w-44 hover:bg-gray-900 hover:scale-110 transition ease-in-out duration-300 ${waiting ? 'disabled' : ''}`} onClick={createPlant}>
                                                 <p className='text-white text-l font-small self-center font-gilroyBold'>Create Sensor</p>
                                             </button>
                                         </div>

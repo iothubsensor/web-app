@@ -19,7 +19,7 @@ const Sidebar: React.FC<any> = ({ activeTabState }) => {
     return (
         <div className="h-screen fixed z-10 bg-slate-100 top-0 left-0 py-4 pl-8 pr-1 m-0 flex flex-col justify-between items-center shadow-sm border-y-2 w-64">
             <div className="w-full flex flex-col justify-center items-start mt-14">
-                <h1 className="text-3xl font-gilroyExtraBold">sensorify</h1>
+                <h1 className="text-3xl font-gilroyExtraBold">plantify</h1>
             </div>
             <div className="w-full flex flex-col justify-center items-start mb-10 mt-2 grow">
 
@@ -31,9 +31,9 @@ const Sidebar: React.FC<any> = ({ activeTabState }) => {
                         </button>
                     </> :
                     <>
-                        {user.isSetup &&
+                        {
                             <button onClick={() => {changeActiveTab(ActiveTab.SENSORS)}} className={"transition ease-in-out font-gilroy hover:text-black hover:scale-105 " + (activeTabState.activeTab === ActiveTab.SENSORS ? 'text-black scale-105' : 'text-slate-500')}>
-                                <i className="fa-solid fa-gear mr-1"/> Sensors
+                                <i className="fa-solid fa-gear mr-1"/> Plants
                             </button>
                         }
                     </>
@@ -43,7 +43,7 @@ const Sidebar: React.FC<any> = ({ activeTabState }) => {
                     <i className="fa-solid fa-file-code mr-1"/> Source Code
                 </button>
 
-                {user != null && user.role === Role.Admin && user.isSetup &&
+                {user != null && user.admin === true &&
                     <button onClick={() => { changeActiveTab(ActiveTab.ADMIN) }} className={"transition ease-in-out font-gilroy hover:text-black hover:scale-105 " + (activeTabState.activeTab === ActiveTab.ADMIN ? 'text-black scale-105' : 'text-slate-500')}>
                         <i className="fa-solid fa-user mr-1"/> Admin Panel
                     </button>

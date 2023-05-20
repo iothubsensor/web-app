@@ -8,7 +8,7 @@ import {UserContext} from './context/UserContext';
 
 import toast, {Toaster} from "react-hot-toast";
 import {Role, UserDTO} from "./dtos/user";
-import Sensors from "./components/screens/Sensors";
+import Plants from "./components/screens/Plants";
 import {destroyUserLocally, loadUserLocally} from "./services/storage.service";
 
 import fetchIntercept from 'fetch-intercept';
@@ -29,12 +29,12 @@ function App() {
         },
 
         response: function (response) {
-            if(!response.ok && (response.status === 401)) {
+            /*if(!response.ok && (response.status === 401)) {
                 toast.dismiss();
 
                 destroyUserLocally()
                 setUser(null)
-            }
+            }*/
 
             return response;
         },
@@ -51,9 +51,9 @@ function App() {
 
                 <div className="h-screen w-screen">
                     <div className="h-screen w-full flex flex-col pl-64 pt-8">
-                        {(user === null) || !user.isSetup ?
+                        {(user === null) ?
                             <Login activeTabState={{ activeTab, setActiveTab }} /> :
-                            activeTab === ActiveTab.SENSORS ? <Sensors/> : <Admin/>
+                            activeTab === ActiveTab.SENSORS ? <Plants/> : <Admin/>
                         }
                     </div>
                 </div>

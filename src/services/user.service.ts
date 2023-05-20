@@ -4,7 +4,7 @@ const  {REACT_APP_DEV_SENSORIFY_API_URL} = process.env
 export class UserService {
 
     public static login = async (loginRequest: UserLoginRequestDto): Promise<any> => {
-        const resp = await fetch(REACT_APP_DEV_SENSORIFY_API_URL + `/user/login`, {
+        const resp = await fetch(REACT_APP_DEV_SENSORIFY_API_URL + '/users/login', {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -21,7 +21,7 @@ export class UserService {
     }
 
     public static register = async (registerRequest: UserLoginRequestDto, token: string | undefined): Promise<any> => {
-        const resp = await fetch(REACT_APP_DEV_SENSORIFY_API_URL + `/user/setup`, {
+        const resp = await fetch(REACT_APP_DEV_SENSORIFY_API_URL + '/users/setup', {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -39,14 +39,14 @@ export class UserService {
 
     }
 
-    public static toggleSensor = async (token: string | undefined, sensorId: string): Promise<any> => {
-        const resp = await fetch(REACT_APP_DEV_SENSORIFY_API_URL + `/user/sensor/toggle`, {
+    public static togglePlant = async (token: string | undefined, plantId: string): Promise<any> => {
+        const resp = await fetch(REACT_APP_DEV_SENSORIFY_API_URL + '/users/plant/toggle', {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": "Bearer " + token
             },
-            body: JSON.stringify(sensorId)
+            body: JSON.stringify(plantId)
         });
 
         if (!resp.ok) throw new Error(resp.statusText);
@@ -55,7 +55,7 @@ export class UserService {
     }
 
     public static createUser = async (token: string | undefined, email: string, password: string, role: string): Promise<any> => {
-        const resp = await fetch(REACT_APP_DEV_SENSORIFY_API_URL + `/user/register`, {
+        const resp = await fetch(REACT_APP_DEV_SENSORIFY_API_URL + '/users/register', {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

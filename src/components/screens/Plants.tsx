@@ -5,9 +5,9 @@ import {animated, useSpring} from "react-spring";
 import {Dialog, Listbox, Switch, Transition} from '@headlessui/react'
 import {LoginState, Role, UserDTO} from "../../dtos/user";
 import {ToggleSwitch} from "flowbite-react";
-import {SensorDTO} from "../../dtos/sensor";
+import {PlantDTO} from "../../dtos/plant";
 import toast from "react-hot-toast";
-import {SensorService} from "../../services/sensor.service";
+import {PlantService} from "../../services/plant.service";
 import {UserService} from "../../services/user.service";
 import {saveUserLocally} from "../../services/storage.service";
 
@@ -37,25 +37,25 @@ ChartJS.register(
 
 var cloneDeep = require('lodash.clonedeep');
 
-const Sensors: React.FC = () => {
+const Plants: React.FC = () => {
 
     const {user, setUser} = useContext(UserContext);
 
     const [isLoading, setLoading] = useState<boolean>(true);
     const [isModalOpen, setModalOpen] = useState<boolean>(false);
-    const [sensorsData, setSensorsData] = useState<SensorDTO[]>([]);
+    const [plantsData, setPlantsData] = useState<PlantDTO[]>([]);
 
     const limitList = [10, 15, 20, 25, 30];
 
     const [dataLimit, setDataLimit] = useState<number>(10);
 
-    const [activeSensor, setActiveSensor] = useState<String | null>((user!.sensors!.length !== 0) ? user!.sensors![0] : null);
+    const [activePlant, setActivePlant] = useState<string | null>();
 
     const [getChart, setChart] = useState<any>({
         labels: [],
         datasets: [
             {
-                label: 'Sensor Data',
+                label: 'Plant Data',
                 data: [],
                 borderColor: 'rgb(255, 99, 132)',
                 backgroundColor: 'rgba(255, 99, 132, 0.5)',
@@ -84,98 +84,152 @@ const Sensors: React.FC = () => {
             api({ reset: false });
     }, [api, isModalOpen])
 
-    const oldGraphData = useRef<SensorDTO>();
+    const oldGraphData = useRef<PlantDTO>();
+    ///////////////////
+    const [plantsOptions, setPlantsOptions] = useState<PlantDTO[]>([]);
 
-    useEffect(() => {
-        fetchSensors();
+// Function to fetch plants data and update state
+const fetchPlants = async () => {
+    try {
+      const response = await PlantService.fetchPlants(user?.token);
+      const plantsArray = await response.json(); // Modify this line based on the actual response structure
+      console.log("plants array",plantsArray)
+      setPlantsOptions(plantsArray);
+      setLoading(false);
+    } catch (err: any) {
+     console.log(err);
+      toast.dismiss();
+      toast.error("Couldn't fetch plants");
+    }
+  };
 
-        setInterval(async () => {
-            setActiveSensor( activeSensorId => {
-                if (activeSensorId == null)
-                    return null;
 
-                setDataLimit(dataLimitConc => {
-                    SensorService.getSensor(user!.token, activeSensorId, dataLimitConc).then(response => {
-                        const sensorDTO: SensorDTO = response.data;
 
-                        if(oldGraphData.current !== sensorDTO) {
-                            oldGraphData.current = sensorDTO;
 
-                            const labels = sensorDTO.datas.map(sens => new Date(sens.date).toLocaleString("en-GB", {
-                                day: "numeric",
-                                month: "short",
-                                year: "numeric",
-                                hour: "numeric",
-                                minute: "2-digit",
-                                second: "2-digit"
-                            }));
 
-                            setChart({
-                                labels: labels,
-                                datasets: [
-                                    {
-                                        label: 'Sensor Data',
-                                        data: sensorDTO.datas.map(sens => sens.data),
-                                        borderColor: 'rgb(255, 99, 132)',
-                                        backgroundColor: 'rgba(255, 99, 132, 0.5)',
-                                    }
-                                ]
-                            })
-                        }
+  ///////////////////////
+  const [plantsDatas, setPlantsDatas] = useState<PlantDTO[]>([]);
 
-                    });
+  // Function to fetch plants data and update state
+  const fetchPlantsData = async () => {
+      try {
+        const response = await PlantService.fetchPlantsData(user?.token, activePlant);
+        //const dataArray = await response.json(); // Modify this line based on the actual response structure
+        console.log("data array",response)
+        setPlantsDatas(response);
+        setLoading(false);
+      } catch (err: any) {
+       console.log(err);
+        toast.dismiss();
+        toast.error("Couldn't fetch data");
+      }
+    };
+  ////////////////////////
 
-                    return dataLimitConc;
+// Call the fetchPlants function to fetch and set the plants data
+useEffect(() => {
+    fetchPlantsData();
+    setInterval(async () => {
+        setActivePlant( activeplantId => {
+            if (activeplantId == null)
+                return null;
+
+            setDataLimit(dataLimitConc => {
+                PlantService.getPlant(user!.token, activeplantId.toString()).then(response => {
+                    const PlantDTO: PlantDTO = response.data;
+
+                    if(oldGraphData.current !== PlantDTO) {
+                        oldGraphData.current = PlantDTO;
+
+                        const labels = PlantDTO.temperatures.map(sens => new Date(sens.date).toLocaleString("en-GB", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                            hour: "numeric",
+                            minute: "2-digit",
+                            second: "2-digit"
+                        }));
+
+                        setChart({
+                            labels: labels,
+                            datasets: [
+                                {
+                                    label: 'Plant Data',
+                                    data: PlantDTO.temperatures.map(sens => sens.data),
+                                    borderColor: 'rgb(255, 99, 132)',
+                                    backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                                }
+                            ]
+                        })
+                    }
+
                 });
 
-                return activeSensorId
-            })
-        }, 2000);
+                return dataLimitConc;
+            });
+
+            return activeplantId
+        })
+    }, 2000);
+}, []);
+    ////////////////
+
+
+    useEffect(() => {
+         fetchPlants().then(u => console.log(u));
+
+  
 
     }, []);
 
-    const fetchSensors = async () => {
+    /*const fetchPlants = async () => {
         try {
-            const getSensors = await SensorService.fetchSensors(user?.token)
+            const getPlants = await PlantService.fetchPlants(user?.token)
 
-            setSensorsData(getSensors.data)
+            setPlantsData(getPlants.data)
             setLoading(false);
+         
+
         } catch (err: any) {
             toast.dismiss();
-            toast.error("Couldn't fetch sensors");
+            toast.error("Couldn't fetch plants");
         }
-    }
+    }*/
 
-    const toggleSensor = async (sensor: SensorDTO) => {
+
+
+
+
+    const togglePlant = async (plant: PlantDTO) => {
 
         toast.dismiss();
 
         try {
-            const toggleSensor = await UserService.toggleSensor(user?.token, sensor.sensorId)
-            toast.success(toggleSensor.message);
+            const togglePlant = await UserService.togglePlant(user?.token, plant.plantId)
+            toast.success(togglePlant.message);
 
-            let updatedSensors = [...sensorsData]
+            let updatedPlants = [...plantsData]
             let updatedUser: UserDTO = cloneDeep(user!)
 
-            let indexOf = updatedSensors.indexOf(sensor);
+            let indexOf = updatedPlants.indexOf(plant);
 
-            if(sensor.users.includes(user!.userId)) {
-                updatedSensors[indexOf].users = updatedSensors[indexOf].users.filter(uId => uId !== user!.userId);
-                updatedUser.sensors = updatedUser.sensors!.filter(sensorId => sensorId !== sensor.sensorId);
+            if(plant.users.includes(user!.userId)) {
+                updatedPlants[indexOf].users = updatedPlants[indexOf].users.filter(uId => uId !== user!.userId);
+                updatedUser.plants = updatedUser.plants!.filter(plantId => plantId !== plant.plantId);
             } else {
-                updatedSensors[indexOf].users.push(user!.userId)
-                updatedUser.sensors!.push(sensor.sensorId)
+                updatedPlants[indexOf].users.push(user!.userId)
+                updatedUser.plants!.push(plant.plantId)
             }
 
-            if(user!.sensors!.length === 0)
-                setActiveSensor(sensor.sensorId)
+            if(user!.plants!.length === 0)
+                setActivePlant(plant.plantId)
 
             setUser!(updatedUser)
-            setSensorsData(updatedSensors)
+            setPlantsData(updatedPlants)
             saveUserLocally(updatedUser)
 
         } catch (err: any) {
-            toast.error("Couldn't toggle sensor " + sensor.sensorId);
+            toast.error("Couldn't toggle plant " + plant.plantId);
             console.log(err);
         }
     }
@@ -188,7 +242,7 @@ const Sensors: React.FC = () => {
             },
             title: {
                 display: true,
-                text: sensorsData.find(s => s.sensorId === activeSensor)?.name + " Sensor" ?? activeSensor + " Sensor"
+                text: plantsData.find(s => s.plantId === activePlant)?.name + " Plant" ?? activePlant + " Plant"
             }
         },
     };
@@ -223,52 +277,52 @@ const Sensors: React.FC = () => {
                                 leaveTo="opacity-0 scale-95"
                             >
                                 <Dialog.Panel className="relative -right-32 w-[50rem] h-144 transform overflow-y-auto rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
-                                    <Dialog.Title
-                                        as="h3"
-                                        className="text-lg font-gilroyBold leading-6 text-gray-900"
-                                    >
-                                        Attach a sensor 📡
-                                    </Dialog.Title>
+                                 <Dialog.Title as="h3" className="text-lg font-gilroyBold leading-6 text-gray-900">
+                                    Attach a plant 🌱
+                                </Dialog.Title>
 
                                     <div className="mt-5">
                                         <p className="text-sm font-gilroyLight text-gray-500">
-                                            Pick a sensor from the list below to attach to your account
+                                            Pick a plant from the list below to attach to your account
                                         </p>
                                     </div>
 
                                     <table className="min-w-full leading-normal mt-5">
                                         <thead className={"relative z-20"}>
                                             <tr>
-                                                {["Id", "Name", "Description", "Attached"].map((tableHeader: string) =>
-                                                    <th key={tableHeader} className="sticky bg-white -top-6 pl-2 h-16 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                                        {tableHeader}
-                                                    </th>
-                                                )}
+                                            {["Id", "Name", "Description", "Attached"].map((tableHeader: string) => (
+                                            <th
+                                                key={tableHeader}
+                                                className="sticky bg-white -top-6 pl-2 h-16 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider"
+                                            >
+                                                {tableHeader}
+                                            </th>   
+                                            ))}
                                             </tr>
                                         </thead>
                                         <tbody className="h-full overflow-y-auto z-10">
-                                            {sensorsData.map((sensor: SensorDTO) => (
-                                                <tr key={sensor.sensorId} className="cursor-pointer">
+                                            {plantsData.map((plant: PlantDTO) => (
+                                                <tr key={plant.plantId} className="cursor-pointer">
                                                     <td className="h-20 px-2 py-5 border-b border-gray-200 bg-white text-base">
-                                                        {sensor.sensorId}
+                                                        {plant.plantId}
                                                     </td>
                                                     <td className="h-20 px-2 py-5 border-b border-gray-200 bg-white text-base">
-                                                        {sensor.name}
+                                                        {plant.name}
                                                     </td>
                                                     <td className="h-20 px-2 py-5 border-b border-gray-200 bg-white text-base">
-                                                        {sensor.description}
+                                                        {plant.description}
                                                     </td>
                                                     <td className="h-20 px-2 py-5 border-b border-gray-200 bg-white text-base">
                                                         <Switch
-                                                            checked={sensor.users.includes(user!.userId)}
-                                                            onChange={() => toggleSensor(sensor)}
-                                                            className={`${sensor.users.includes(user!.userId) ? 'bg-teal-900' : 'bg-teal-700'}
+                                                            checked={plant.users.includes(user!.userId)}
+                                                            onChange={() => togglePlant(plant)}
+                                                            className={`${plant.users.includes(user!.userId) ? 'bg-teal-900' : 'bg-teal-700'}
               relative inline-flex h-[24px] w-[44px] shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2  focus-visible:ring-white focus-visible:ring-opacity-75`}
                                                         >
                                                             <span className="sr-only">Use setting</span>
                                                             <span
                                                                 aria-hidden="true"
-                                                                className={`${sensor.users.includes(user!.userId) ? 'translate-x-5' : 'translate-x-0'}
+                                                                className={`${plant.users.includes(user!.userId) ? 'translate-x-5' : 'translate-x-0'}
                 pointer-events-none inline-block h-[20px] w-[20px] transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out`}
                                                             />
                                                         </Switch>
@@ -286,20 +340,20 @@ const Sensors: React.FC = () => {
 
             <div className="w-full h-full flex flex-row items-center justify-center">
 
-                {user?.sensors?.length === 0 &&
+                {user?.plants?.length === 0 &&
                     <animated.div style={initialLoad} className="flex flex-col items-center justify-between w-4/6 h-20">
-                        <p className="text-xl font-gilroyBold">You currently don't have any sensors active!</p>
+                        <p className="text-xl font-gilroyBold">You currently don't have any plant active!</p>
 
                         <button className='bg-black rounded-full h-10 w-36 hover:bg-gray-900 flex items-center justify-center' onClick={() => {
                             setModalOpen(true)
                         }}>
                             <i className="fa-solid fa-wrench text-white mr-2 "></i>
-                            <p className='text-white text-xs font-medium self-center font-gilroyBold'>Attach a sensor</p>
+                            <p className='text-white text-xs font-medium self-center font-gilroyBold'>Attach a plant</p>
                         </button>
                     </animated.div>
                 }
 
-                {user?.sensors?.length !== 0 &&
+                {user?.plants?.length !== 0 &&
                     <div className="flex flex-row w-full h-full gap-20 items-center justify-center">
 
                         <div className={"w-1/2 h-1/2"}>
@@ -310,11 +364,11 @@ const Sensors: React.FC = () => {
 
                             <div className={"flex flex-row w-full justify-between items-center"}>
                                 <div className={"flex flex-col"}>
-                                    <p className={"font-gilroyBold text-lg"}>Active Sensor</p>
-                                    <Listbox value={activeSensor} onChange={setActiveSensor}>
+                                    <p className={"font-gilroyBold text-lg"}>Active Plant</p>
+                                    <Listbox value={activePlant} onChange={setActivePlant}>
                                         <div className="relative mt-1">
                                             <Listbox.Button className="relative w-full cursor-default rounded-lg bg-white py-2 pl-3 pr-10 text-left shadow-md focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm">
-                                                <span className="block truncate">{activeSensor}</span>
+                                                <span className="block truncate">{activePlant}</span>
                                                 <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
                                                                   <ChevronUpDownIcon
                                                                       className="h-5 w-5 text-gray-400"
@@ -328,37 +382,40 @@ const Sensors: React.FC = () => {
                                                 leaveFrom="opacity-100"
                                                 leaveTo="opacity-0"
                                             >
-                                                <Listbox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                                                    {user!.sensors!.map((sensor, sensorIdx) => (
-                                                        <Listbox.Option
-                                                            key={sensorIdx}
-                                                            className={({ active }) =>
-                                                                `relative cursor-default select-none py-2 pl-10 pr-4 ${
-                                                                    active ? 'bg-amber-100 text-amber-900' : 'text-gray-900'
-                                                                }`
-                                                            }
-                                                            value={sensor}
-                                                        >
-                                                            {({ selected }) => (
-                                                                <>
-                                                                                  <span
-                                                                                      className={`block truncate ${
-                                                                                          selected ? 'font-medium' : 'font-normal'
-                                                                                      }`}
-                                                                                  >
-                                                                                    {
-                                                                                        sensorsData.find(s => s.sensorId === sensor)?.name ?? sensor
-                                                                                    }
-                                                                                  </span>
-                                                                    {selected ? (
-                                                                        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-amber-600">
-                                                                                          <CheckIcon className="h-5 w-5" aria-hidden="true" />
-                                                                                        </span>
-                                                                    ) : null}
-                                                                </>
-                                                            )}
-                                                        </Listbox.Option>
-                                                    ))}
+                                            <Listbox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                                            {user && plantsOptions.length > 0 ? (
+  plantsOptions.map((plant) => (
+    <Listbox.Option
+      className={({ active }) =>
+        `relative cursor-default select-none py-2 pl-10 pr-4 ${
+          active ? 'bg-amber-100 text-amber-900' : 'text-gray-900'
+        }`
+      }
+      value={plant.plantId}
+    >
+      {({ selected }) => (
+        <>
+          <span
+            className={`block truncate ${
+              selected ? 'font-medium' : 'font-normal'
+            }`}
+          >
+            {plant.name} {/* Assuming the plant object has a 'name' property */}
+          </span>
+          {selected ? (
+            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-amber-600">
+              <CheckIcon className="h-5 w-5" aria-hidden="true" />
+            </span>
+          ) : null}
+        </>
+      )}
+    </Listbox.Option>
+  ))
+) : (
+  // Handle the case when plantsOptions is empty or not available
+  <p>No plants available</p>
+)}
+
                                                 </Listbox.Options>
                                             </Transition>
                                         </div>
@@ -369,7 +426,7 @@ const Sensors: React.FC = () => {
                                     setModalOpen(true)
                                 }}>
                                     <i className="text-sm fa-solid fa-wrench text-white mr-2 "></i>
-                                    <p className='text-white text-sm font-medium self-center font-gilroyBold'>Attach a sensor</p>
+                                    <p className='text-white text-sm font-medium self-center font-gilroyBold'>Create a plant</p>
                                 </button>
                             </div>
 
@@ -437,4 +494,4 @@ const Sensors: React.FC = () => {
     )
 }
 
-export default Sensors;
+export default Plants;
