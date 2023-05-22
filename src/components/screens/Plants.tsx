@@ -36,35 +36,6 @@ ChartJS.register(
 );
 
 var cloneDeep = require('lodash.clonedeep');
-/*const usePlantWebSocket = () => {
-    const url = 'ws://34.165.1.243:8000/plants/listen/${plantId}?token=${token}';
-
-    const [plantData, setPlantData] = useState([]);
-
-    const { lastJsonMessage } = useWebSocket(url);
-
-    useEffect(() => {
-        if (lastJsonMessage) {
-          const dataArray: unknown[] = [];
-          if (Array.isArray(lastJsonMessage)) {
-            lastJsonMessage.forEach((jsonValue) => {
-              if (typeof jsonValue === 'object' && jsonValue !== null && 'data' in jsonValue) {
-                dataArray.push((jsonValue as { data: unknown }).data);
-              }
-            });
-          } else if (typeof lastJsonMessage === 'object' && lastJsonMessage !== null && 'data' in lastJsonMessage) {
-            dataArray.push((lastJsonMessage as { data: unknown }).data);
-          }
-          setPlantData(dataArray as never[]);
-        }
-      }, [lastJsonMessage]);
-
-
-
-
-    return plantData;
-  };*/
-
 interface SocketData {
     temperature: number,
     light: number,
@@ -141,7 +112,7 @@ const Plants: React.FC = () => {
     const fetchPlants = async () => {
         try {
           const response = await PlantService.fetchPlants(user?.token);
-          const plantsArray = await response.json(); // Modify this line based on the actual response structure
+          const plantsArray = await response.json();
           console.log("plants array",plantsArray)
           setPlantsOptions(plantsArray);
           setActivePlant(plantsArray[0])

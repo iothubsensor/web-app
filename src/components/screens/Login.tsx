@@ -272,6 +272,7 @@ const Login: React.FC<any> = ({ activeTabState }) => {
                         <button className='bg-black rounded-full h-14 w-44 hover:bg-gray-900' onClick={handleStep}>
                             <p className='text-white text-l font-small self-center font-gilroyBold'>Continue</p>
                         </button>
+                        
 
                     </animated.div>
 

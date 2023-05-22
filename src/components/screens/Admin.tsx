@@ -118,8 +118,15 @@ const Admin: React.FC = () => {
                 <button className='bg-black rounded-full h-32 w-72  hover:bg-gray-900 flex items-center justify-center' onClick={() => {
                     setSensorModal(true)
                 }}>
-                    <i className="fa-solid text-xl fa-signal text-white mr-2 "></i>
-                    <p className='text-white text-xl font-medium self-center font-gilroyBold'>Create a Plant</p>
+                    <p className='text-white text-xl font-medium self-center font-gilroyBold'>Create a Plant 🌱</p>
+                </button>
+            </div>
+
+            <div className="flex flex-row w-11/12 h-5/6 items-center justify-center">
+                <button className='bg-black rounded-full h-32 w-72  hover:bg-gray-900 flex items-center justify-center' onClick={() => {
+                    setUserModal(true)
+                }}>
+                    <p className='text-white text-xl font-medium self-center font-gilroyBold'>Create a User 👦👧 </p>
                 </button>
             </div>
 

@@ -21,7 +21,7 @@ export class UserService {
     }
 
     public static register = async (registerRequest: UserLoginRequestDto, token: string | undefined): Promise<any> => {
-        const resp = await fetch(REACT_APP_DEV_SENSORIFY_API_URL + '/users/setup', {
+        const resp = await fetch(REACT_APP_DEV_SENSORIFY_API_URL + '/users/signup', {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -55,7 +55,7 @@ export class UserService {
     }
 
     public static createUser = async (token: string | undefined, email: string, password: string, role: string): Promise<any> => {
-        const resp = await fetch(REACT_APP_DEV_SENSORIFY_API_URL + '/users/register', {
+        const resp = await fetch(REACT_APP_DEV_SENSORIFY_API_URL + '/users/signup', {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
