@@ -10,7 +10,7 @@ import toast from "react-hot-toast";
 import {PlantService} from "../../services/plant.service";
 import {UserService} from "../../services/user.service";
 import {saveUserLocally} from "../../services/storage.service";
-
+import useWebSocket from 'react-use-websocket';
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -24,6 +24,7 @@ import {
 import { Line } from 'react-chartjs-2';
 import {ChevronUpDownIcon} from "@heroicons/react/24/outline";
 import {CheckIcon} from "@heroicons/react/20/solid";
+const  {REACT_APP_DEV_SENSORIFY_API_URL} = process.env
 
 ChartJS.register(
     CategoryScale,
@@ -36,8 +37,37 @@ ChartJS.register(
 );
 
 var cloneDeep = require('lodash.clonedeep');
+/*const usePlantWebSocket = () => {
+    const url = 'ws://34.165.1.243:8000/plants/listen/${plantId}?token=${token}';
+
+    const [plantData, setPlantData] = useState([]);
+  
+    const { lastJsonMessage } = useWebSocket(url);
+
+    useEffect(() => {
+        if (lastJsonMessage) {
+          const dataArray: unknown[] = [];
+          if (Array.isArray(lastJsonMessage)) {
+            lastJsonMessage.forEach((jsonValue) => {
+              if (typeof jsonValue === 'object' && jsonValue !== null && 'data' in jsonValue) {
+                dataArray.push((jsonValue as { data: unknown }).data);
+              }
+            });
+          } else if (typeof lastJsonMessage === 'object' && lastJsonMessage !== null && 'data' in lastJsonMessage) {
+            dataArray.push((lastJsonMessage as { data: unknown }).data);
+          }
+          setPlantData(dataArray as never[]);
+        }
+      }, [lastJsonMessage]);
+      
+      
+      
+  
+    return plantData;
+  };*/
 
 const Plants: React.FC = () => {
+    //const plantData = usePlantWebSocket();
 
     const {user, setUser} = useContext(UserContext);
 
@@ -112,24 +142,26 @@ const fetchPlants = async () => {
 
   // Function to fetch plants data and update state
   const fetchPlantsData = async () => {
-      try {
-        const response = await PlantService.fetchPlantsData(user?.token, activePlant);
-        //const dataArray = await response.json(); // Modify this line based on the actual response structure
-        console.log("data array",response)
-        setPlantsDatas(response);
-        setLoading(false);
-      } catch (err: any) {
-       console.log(err);
-        toast.dismiss();
-        toast.error("Couldn't fetch data");
-      }
-    };
+    try {
+      const response = await PlantService.fetchPlantsData(
+        user?.token,
+        activePlant
+      );
+      setPlantsDatas(response);
+      setLoading(false);
+    } catch (err: any) {
+      console.log(err);
+      toast.dismiss();
+      toast.error("Couldn't fetch data");
+    }
+  };
   ////////////////////////
 
 // Call the fetchPlants function to fetch and set the plants data
 useEffect(() => {
     fetchPlantsData();
-    setInterval(async () => {
+  
+    const interval = setInterval(async () => {
         setActivePlant( activeplantId => {
             if (activeplantId == null)
                 return null;
@@ -171,7 +203,9 @@ useEffect(() => {
             return activeplantId
         })
     }, 2000);
-}, []);
+  
+    return () => clearInterval(interval);
+  }, [activePlant, dataLimit]);
     ////////////////
 
 
