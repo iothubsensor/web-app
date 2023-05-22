@@ -1,43 +1,46 @@
 export class PlantDTO {
-    plantId: string;
+    id: string;
     name: string;
     description: string;
+    key: string;
+    state: boolean;
+    online: boolean;
     temperatures: Array<PlantDataDTO>;
     humidities: Array<PlantDataDTO>;
     moistures: Array<PlantDataDTO>;
-    lightValues: Array<PlantDataDTO>;
-    users: Array<number>;
-  
+    light_values: Array<PlantDataDTO>;
+
     constructor(
-      plantId: string,
+      id: string,
       name: string,
       description: string,
+      key: string,
+      state: boolean,
+      online: boolean,
       temperatures: Array<PlantDataDTO>,
       humidities: Array<PlantDataDTO>,
       moistures: Array<PlantDataDTO>,
-      lightValues: Array<PlantDataDTO>,
-      users: Array<number>,
+      light_values: Array<PlantDataDTO>,
     ) {
-      this.plantId = plantId;
+      this.id = id;
       this.name = name;
       this.description = description;
+      this.key = key;
+      this.state = state;
+      this.online = online;
       this.temperatures = temperatures;
       this.humidities = humidities;
       this.moistures = moistures;
-      this.lightValues = lightValues;
-      this.users = users;
+      this.light_values = light_values;
     }
   }
-  
+
   export class PlantDataDTO {
-    plantDataId: number;
-    data: number;
-    date: number;
-  
-    constructor(plantDataId: number, data: number, date: number) {
-      this.plantDataId = plantDataId;
-      this.data = data;
-      this.date = date;
+    value: number;
+    timestamp: string;
+
+    constructor(value: number, timestamp: string) {
+      this.value = value;
+      this.timestamp = timestamp;
     }
   }
-  

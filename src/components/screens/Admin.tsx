@@ -59,18 +59,18 @@ const Admin: React.FC = () => {
         setWaiting(true);
 
         if(sensorInfo.name === "") {
-            toast.error("A sensor name should be provided.")
+            toast.error("A plant name should be provided.")
         } else if (sensorInfo.description === "") {
-            toast.error("A sensor description should be provided.")
+            toast.error("A plant description should be provided.")
         } else {
             try {
                 const registerSensor = await PlantService.createPlant(user!.token, sensorInfo.name, sensorInfo.description);
 
-                toast.success("Successfully created the sensor");
+                toast.success("Successfully created the plant");
 
                 setSensorInfo({
                     ...sensorInfo,
-                    token: registerSensor.token
+                    token: registerSensor.key
                 })
 
             } catch (e) {
@@ -114,19 +114,12 @@ const Admin: React.FC = () => {
 
             <p className="text-4xl font-gilroyBold">Choose one of the following options ⚙️</p>
 
-            <div className="flex flex-row w-11/12 h-5/6 items-center justify-center gap-20">
-                <button className='bg-black rounded-full h-32 w-72 hover:bg-gray-900 flex items-center justify-center' onClick={() => {
-                    setUserModal(true)
-                }}>
-                    <i className="fa-solid text-xl fa-user text-white mr-2 "></i>
-                    <p className='text-white text-xl font-medium self-center font-gilroyBold'>Create a User</p>
-                </button>
-
+            <div className="flex flex-row w-11/12 h-5/6 items-center justify-center">
                 <button className='bg-black rounded-full h-32 w-72  hover:bg-gray-900 flex items-center justify-center' onClick={() => {
                     setSensorModal(true)
                 }}>
                     <i className="fa-solid text-xl fa-signal text-white mr-2 "></i>
-                    <p className='text-white text-xl font-medium self-center font-gilroyBold'>Create a Sensor</p>
+                    <p className='text-white text-xl font-medium self-center font-gilroyBold'>Create a Plant</p>
                 </button>
             </div>
 
@@ -325,12 +318,12 @@ const Admin: React.FC = () => {
                                         as="h1"
                                         className="text-2xl font-gilroyBold leading-6 text-gray-900"
                                     >
-                                        Create a Sensor 🔧
+                                        Create a Plant 🌱
                                     </Dialog.Title>
 
                                     <div className="mt-7">
                                         <p className="text-sm font-gilroyLight text-gray-500">
-                                            Fill out the details below in order to create a new sensor, a sensor key will be provided once the sensor is registered.
+                                            Fill out the details below in order to create a new plant, a plant token will be provided once the sensor is registered in order for you to provide it to the IOT device.
                                         </p>
                                     </div>
 
@@ -352,7 +345,7 @@ const Admin: React.FC = () => {
                                                             });
                                                         }
                                                         }
-                                                        disabled={waiting}
+                                                        disabled={waiting || sensorInfo.token}
                                                     />
                                                 </div>
                                                 <div className={"flex flex-col"}>
@@ -369,7 +362,7 @@ const Admin: React.FC = () => {
                                                             });
                                                         }
                                                         }
-                                                        disabled={waiting}
+                                                        disabled={waiting || sensorInfo.token}
                                                     />
                                                 </div>
                                             </div>
@@ -386,7 +379,13 @@ const Admin: React.FC = () => {
                                                             value={sensorInfo.token}
                                                             disabled={true}
                                                         />
-                                                        <button className='flex bg-black h-9 w-9 rounded-lg hover:bg-gray-900 hover:scale-105 transition ease-in-out duration-300 items-center justify-center' onClick={() => {}}>
+                                                        <button className='flex bg-black h-9 w-9 rounded-lg hover:bg-gray-900 hover:scale-105 transition ease-in-out duration-300 items-center justify-center' onClick={() => {
+
+                                                            if(sensorInfo.token) {
+                                                                navigator.clipboard.writeText(sensorInfo.token).then(() => toast.success("Copied the token to the clipboard!"))
+                                                            }
+
+                                                        }}>
                                                             <i className="text-white fa-solid fa-copy"></i>
                                                         </button>
                                                     </div>
@@ -403,10 +402,10 @@ const Admin: React.FC = () => {
                                                     token: ""
                                                 });
                                             }}>
-                                                <p className='text-white text-l font-small self-center font-gilroyBold'>Reset Sensor</p>
+                                                <p className='text-white text-l font-small self-center font-gilroyBold'>Reset Plant</p>
                                             </button>
                                             <button className={`bg-black rounded-full h-14 w-44 hover:bg-gray-900 hover:scale-110 transition ease-in-out duration-300 ${waiting ? 'disabled' : ''}`} onClick={createPlant}>
-                                                <p className='text-white text-l font-small self-center font-gilroyBold'>Create Sensor</p>
+                                                <p className='text-white text-l font-small self-center font-gilroyBold'>Create Plant</p>
                                             </button>
                                         </div>
 

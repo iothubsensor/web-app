@@ -7,14 +7,12 @@ export class UserDTO {
   email: string;
   token: string | undefined;
   screen: ActiveTab;
-  plants?: Array<String>;
 
-  constructor(userId: number, email: string, screen: ActiveTab, token: string, plants: Array<String>,admin: Boolean) {
+  constructor(userId: number, email: string, screen: ActiveTab, token: string, admin: boolean) {
     this.userId = userId;
     this.email = email;
     this.token = token;
     this.screen = screen;
-    this.plants = plants;
     this.admin = admin;
 
   }
